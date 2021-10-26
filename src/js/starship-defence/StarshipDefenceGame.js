@@ -10,13 +10,26 @@ export default class StarshipDefenceGame {
 			container: DOMcontainer,
 		};
 
+		this.settings = {
+			starshipSizeW: 10, // procent of width
+			starshipSizeH: 20, // procent of height
+			starshipStartPositionX: 50, // procent of width
+			starshipStartPositionY: 85, // procent of height
+			starshipDriftSpeed: 1,
+			starshipFriction: 0.05,
+		};
+
 		this.state = {
 			width: null,
 			height: null,
+			driftX: null,
+			keyLeftActive: false,
+			keyRightActive: false,
 			eventCallbacks: {
 				resize: [],
 				load: [],
 				progress: [],
+				tick: [],
 			},
 		};
 
@@ -56,6 +69,8 @@ export default class StarshipDefenceGame {
 		// ---- -> EVENT LISTENERS ----
 
 		window.addEventListener("resize", throttle(this.onResize.bind(this), 300));
+		window.addEventListener("keydown", this.onKeydown.bind(this));
+		window.addEventListener("keyup", this.onKeyup.bind(this));
 
 		// ---- EVENT LISTENERS <- ----
 	}
@@ -95,6 +110,8 @@ export default class StarshipDefenceGame {
 		this.managers.bg.init(this.loader.resources.bg);
 		this.managers.starship.init(this.loader.resources.starship);
 
+		window.requestAnimationFrame(this.onTick.bind(this));
+
 		this.state.eventCallbacks.load.forEach((callback) => {
 			callback();
 		});
@@ -106,6 +123,40 @@ export default class StarshipDefenceGame {
 		this.state.eventCallbacks.progress.forEach((callback) => {
 			callback();
 		});
+	}
+
+	onTick() {
+		this.state.eventCallbacks.tick.forEach((callback) => {
+			callback();
+		});
+
+		window.requestAnimationFrame(this.onTick.bind(this));
+	}
+
+	onKeydown({ key }) {
+		if (key === "ArrowLeft") {
+			this.state.keyLeftActive = true;
+			this.state.driftX = "left";
+		}
+		if (key === "ArrowRight") {
+			this.state.keyRightActive = true;
+			this.state.driftX = "right";
+		}
+	}
+
+	onKeyup({ key }) {
+		if (key === "ArrowLeft") {
+			this.state.keyLeftActive = false;
+
+			if (this.state.driftX === "left")
+				this.state.driftX = this.state.keyRightActive ? "right" : "";
+		}
+		if (key === "ArrowRight") {
+			this.state.keyRightActive = false;
+
+			if (this.state.driftX === "right")
+				this.state.driftX = this.state.keyLeftActive ? "left" : "";
+		}
 	}
 
 	onResize() {

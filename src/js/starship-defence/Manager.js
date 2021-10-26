@@ -17,8 +17,5 @@ export default class Manager {
 		this.state.isInited = true;
 	}
 
-	onResize() {
-		console.log("resize from Manager");
-		return this;
-	}
+	onResize() {} // eslint-disable-line class-methods-use-this
 }

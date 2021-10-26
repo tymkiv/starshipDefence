@@ -114,7 +114,6 @@ export default class StarshipManager extends Manager {
 	}
 
 	onShot() {
-		console.log("bullet");
 		new Bullet( // eslint-disable-line no-new
 			this.generalManager,
 			this.state.normalX,

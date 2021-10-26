@@ -11,12 +11,14 @@ export default class StarshipDefenceGame {
 		};
 
 		this.settings = {
-			starshipSizeW: 10, // procent of width
-			starshipSizeH: 20, // procent of height
-			starshipStartPositionX: 50, // procent of width
-			starshipStartPositionY: 85, // procent of height
+			starshipSizeW: 10, // procent of width -> 100 max
+			starshipSizeH: 20, // procent of height -> 100 max
+			starshipStartPositionX: 50, // procent of width -> 100 max
+			starshipStartPositionY: 85, // procent of height -> 100 max
 			starshipDriftSpeed: 1,
 			starshipFriction: 0.05,
+			bulletRadius: 0.5, // procent of width -> 100 max
+			bulletSpeed: 1,
 		};
 
 		this.state = {
@@ -30,6 +32,7 @@ export default class StarshipDefenceGame {
 				load: [],
 				progress: [],
 				tick: [],
+				shot: [],
 			},
 		};
 
@@ -94,12 +97,6 @@ export default class StarshipDefenceGame {
 	}
 
 	removeListener(type, callback) {
-		if (
-			!this.state.eventCallbacks[type] ||
-			this.state.eventCallbacks[type].includes(callback)
-		)
-			return;
-
 		this.state.eventCallbacks[type] = this.state.eventCallbacks[type].filter(
 			(oldCallback) => callback !== oldCallback
 		);
@@ -133,25 +130,34 @@ export default class StarshipDefenceGame {
 		window.requestAnimationFrame(this.onTick.bind(this));
 	}
 
-	onKeydown({ key }) {
-		if (key === "ArrowLeft") {
+	onShot() {
+		this.state.eventCallbacks.shot.forEach((callback) => {
+			callback();
+		});
+	}
+
+	onKeydown({ code }) {
+		if (code === "ArrowLeft") {
 			this.state.keyLeftActive = true;
 			this.state.driftX = "left";
 		}
-		if (key === "ArrowRight") {
+		if (code === "ArrowRight") {
 			this.state.keyRightActive = true;
 			this.state.driftX = "right";
 		}
+		if (code === "Space") {
+			this.onShot();
+		}
 	}
 
-	onKeyup({ key }) {
-		if (key === "ArrowLeft") {
+	onKeyup({ code }) {
+		if (code === "ArrowLeft") {
 			this.state.keyLeftActive = false;
 
 			if (this.state.driftX === "left")
 				this.state.driftX = this.state.keyRightActive ? "right" : "";
 		}
-		if (key === "ArrowRight") {
+		if (code === "ArrowRight") {
 			this.state.keyRightActive = false;
 
 			if (this.state.driftX === "right")

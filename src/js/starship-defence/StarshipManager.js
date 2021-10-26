@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import { contain } from "intrinsic-scale";
 
 import Manager from "./Manager";
+import Bullet from "./Bullet";
 
 export default class StarshipManager extends Manager {
 	init(starship) {
@@ -9,8 +10,12 @@ export default class StarshipManager extends Manager {
 
 		this.starship = starship;
 
-		this.state.normalX = this.generalManager.settings.starshipStartPositionX;
-		this.state.normalY = this.generalManager.settings.starshipStartPositionY;
+		this.state.normalInstantlyX =
+			this.generalManager.settings.starshipStartPositionX;
+		this.state.normalInstantlyY =
+			this.generalManager.settings.starshipStartPositionY;
+		this.state.normalX = this.state.normalInstantlyX;
+		this.state.normalY = this.state.normalInstantlyY;
 
 		this.starshipSprite = new PIXI.Sprite(this.starship.texture);
 		this.naturalWidth = this.starship.data.naturalWidth;
@@ -19,12 +24,13 @@ export default class StarshipManager extends Manager {
 		this.generalManager.app.stage.addChild(this.starshipSprite);
 
 		this.generalManager.addListener("tick", this.onTick.bind(this));
+		this.generalManager.addListener("shot", this.onShot.bind(this));
 
 		this.updateSize();
-		this.setSize();
+
+		this.calculateNormalPositionInstantly();
 
 		this.updatePosition();
-		this.setPositionInstantly();
 	}
 
 	updateSize() {
@@ -41,45 +47,42 @@ export default class StarshipManager extends Manager {
 
 		this.state.width = width;
 		this.state.height = height;
-	}
 
-	setSize() {
 		this.starshipSprite.width = this.state.width;
 		this.starshipSprite.height = this.state.height;
 	}
 
 	updatePosition() {
-		this.state.leapX =
+		this.state.x =
 			(this.state.normalX / 100) * this.generalManager.state.width -
 			this.state.width / 2;
-		this.state.leapY =
+		this.state.y =
 			(this.state.normalY / 100) * this.generalManager.state.height -
 			this.state.height / 2;
-	}
-
-	setPositionInstantly() {
-		this.state.x = this.state.leapX;
-		this.state.y = this.state.leapY;
 
 		this.starshipSprite.x = this.state.x;
 		this.starshipSprite.y = this.state.y;
 	}
 
-	setPositionFriction() {
-		this.state.x +=
+	calculateNormalPositionFriction() {
+		this.state.normalX +=
 			this.generalManager.settings.starshipFriction *
-			(this.state.leapX - this.state.x);
-		this.state.y +=
+			(this.state.normalInstantlyX - this.state.normalX);
+		this.state.normalY +=
 			this.generalManager.settings.starshipFriction *
-			(this.state.leapY - this.state.y);
+			(this.state.normalInstantlyY - this.state.normalY);
+	}
 
-		this.starshipSprite.x = this.state.x;
-		this.starshipSprite.y = this.state.y;
+	calculateNormalPositionInstantly() {
+		this.state.normalX = this.state.normalInstantlyX;
+		this.state.normalY = this.state.normalInstantlyY;
 	}
 
 	setCenterPosition() {
-		this.state.normalX = this.generalManager.settings.starshipStartPositionX;
-		this.state.normalY = this.generalManager.settings.starshipStartPositionY;
+		this.state.normalInstantlyX =
+			this.generalManager.settings.starshipStartPositionX;
+		this.state.normalInstantlyY =
+			this.generalManager.settings.starshipStartPositionY;
 	}
 
 	onStartGame() {
@@ -88,29 +91,43 @@ export default class StarshipManager extends Manager {
 
 	moveLeft() {
 		if (
-			this.state.normalX - this.generalManager.settings.starshipDriftSpeed <
+			this.state.normalInstantlyX -
+				this.generalManager.settings.starshipDriftSpeed <
 			this.generalManager.settings.starshipSizeW / 2
 		)
 			return;
 
-		this.state.normalX -= this.generalManager.settings.starshipDriftSpeed;
+		this.state.normalInstantlyX -=
+			this.generalManager.settings.starshipDriftSpeed;
 	}
 
 	moveRight() {
 		if (
-			this.state.normalX + this.generalManager.settings.starshipDriftSpeed >
+			this.state.normalInstantlyX +
+				this.generalManager.settings.starshipDriftSpeed >
 			100 - this.generalManager.settings.starshipSizeW / 2
 		)
 			return;
 
-		this.state.normalX += this.generalManager.settings.starshipDriftSpeed;
+		this.state.normalInstantlyX +=
+			this.generalManager.settings.starshipDriftSpeed;
+	}
+
+	onShot() {
+		console.log("bullet");
+		new Bullet( // eslint-disable-line no-new
+			this.generalManager,
+			this.state.normalX,
+			this.state.normalY - this.generalManager.settings.starshipSizeH / 2
+		);
 	}
 
 	onTick() {
 		if (this.generalManager.state.driftX === "left") this.moveLeft();
 		if (this.generalManager.state.driftX === "right") this.moveRight();
+
+		this.calculateNormalPositionFriction();
 		this.updatePosition();
-		this.setPositionFriction();
 	}
 
 	onResize() {

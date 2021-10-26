@@ -1,3 +1,4 @@
+import Stats from "stats-js";
 import * as PIXI from "pixi.js";
 import { throttle } from "underscore";
 
@@ -9,6 +10,16 @@ export default class StarshipDefenceGame {
 		this.DOM = {
 			container: DOMcontainer,
 		};
+
+		const stats = new Stats();
+		stats.showPanel(0);
+		document.body.appendChild(stats.dom);
+		function animate() {
+			stats.begin();
+			stats.end();
+			requestAnimationFrame(animate);
+		}
+		requestAnimationFrame(animate);
 
 		this.settings = {
 			starshipSizeW: 10, // procent of width -> 100 max
@@ -61,8 +72,7 @@ export default class StarshipDefenceGame {
 			height: this.state.height,
 			antialias: true,
 			backgroundAlpha: 0,
-			resolution: 2, // for test | should be removed
-			// resolution: window.devicePixelRatio,
+			resolution: window.devicePixelRatio,
 			autoDensity: true,
 		});
 		this.DOM.container.appendChild(this.app.view);

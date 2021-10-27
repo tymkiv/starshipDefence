@@ -4,10 +4,9 @@ import { throttle } from "underscore";
 
 import BgManager from "./BgManager";
 import StarshipManager from "./StarshipManager";
-import AsteroidManager from "./AsteroidManager";
+import AsteroidCreatorManager from "./AsteroidCreatorManager";
 import CollisionDetection from "./CollisionDetection";
-
-import { getRandomArbitrary } from "./extraFunctions";
+import Menu from "./Menu";
 
 export default class StarshipDefenceGame {
 	constructor(DOMcontainer) {
@@ -38,6 +37,9 @@ export default class StarshipDefenceGame {
 			shotThrottleTimeout: 100,
 			asteroidSizeW: 5,
 			asteroidSizeH: 10,
+			asteroidSpeed: 0.5,
+			// in ticks
+			ticksToChangeAsteroidDirection: 30,
 		};
 
 		this.state = {
@@ -72,6 +74,8 @@ export default class StarshipDefenceGame {
 			bg: new BgManager(this),
 			starship: new StarshipManager(this),
 			collisionDetection: new CollisionDetection(this),
+			asteroidCreatorManager: new AsteroidCreatorManager(this),
+			menu: new Menu(this),
 		};
 
 		this.updateSize();
@@ -110,9 +114,10 @@ export default class StarshipDefenceGame {
 		window.addEventListener("resize", throttle(this.onResize.bind(this), 300));
 		window.addEventListener("keydown", this.onKeydown.bind(this));
 		window.addEventListener("keyup", this.onKeyup.bind(this));
-		window.addEventListener("pointerdown", this.onPointerdown.bind(this));
-		window.addEventListener("pointermove", this.onPointermove.bind(this));
-		window.addEventListener("pointerup", this.onPointerup.bind(this));
+		this.app.stage.interactive = true;
+		this.app.stage.on("pointerdown", this.onPointerdown.bind(this));
+		this.app.stage.on("pointermove", this.onPointermove.bind(this));
+		this.app.stage.on("pointerup", this.onPointerup.bind(this));
 
 		// ---- EVENT LISTENERS <- ----
 	}
@@ -147,21 +152,12 @@ export default class StarshipDefenceGame {
 		this.managers.bg.init(this.loader.resources.bg);
 		this.managers.starship.init(this.loader.resources.starship);
 
-		for (let i = 0; i < 10; i++) {
-			const asteroid = new AsteroidManager(this);
-			asteroid.init(
-				this.loader.resources.asteroid,
-				this.loader.resources.explosion,
-				getRandomArbitrary(
-					this.settings.asteroidSizeW / 2,
-					100 - this.settings.asteroidSizeW / 2
-				),
-				getRandomArbitrary(
-					this.settings.asteroidSizeH / 2,
-					50 - this.settings.asteroidSizeH / 2
-				)
-			);
-		}
+		this.managers.asteroidCreatorManager.init(
+			this.loader.resources.asteroid,
+			this.loader.resources.explosion
+		);
+
+		this.managers.menu.init();
 
 		window.requestAnimationFrame(this.onTick.bind(this));
 
@@ -234,20 +230,26 @@ export default class StarshipDefenceGame {
 	}
 
 	onPointerdown(touch) {
-		if (touch.pageX < window.innerWidth / 2 && !this.state.touches.left.id) {
-			this.state.touches.left.start = touch.pageX;
-			this.state.touches.left.id = touch.pointerId;
+		if (
+			touch.data.global.x < this.state.width / 2 &&
+			!this.state.touches.left.id
+		) {
+			this.state.touches.left.start = touch.data.global.x;
+			this.state.touches.left.id = touch.data.identifier;
 		}
 
-		if (touch.pageX > window.innerWidth / 2 && !this.state.touches.right.id) {
-			this.state.touches.right.id = touch.pointerId;
+		if (
+			touch.data.global.x > this.state.width / 2 &&
+			!this.state.touches.right.id
+		) {
+			this.state.touches.right.id = touch.data.identifier;
 			this.state.shotActive = true;
 		}
 	}
 
 	onPointermove(touch) {
-		if (touch.pointerId === this.state.touches.left.id) {
-			this.state.touches.left.move = touch.pageX;
+		if (touch.data.identifier === this.state.touches.left.id) {
+			this.state.touches.left.move = touch.data.global.x;
 
 			if (this.state.touches.left.move > this.state.touches.left.start) {
 				this.state.driftX = "right";
@@ -259,7 +261,7 @@ export default class StarshipDefenceGame {
 	}
 
 	onPointerup(touch) {
-		if (touch.pointerId === this.state.touches.left.id) {
+		if (touch.data.identifier === this.state.touches.left.id) {
 			this.state.touches.left.start = null;
 			this.state.touches.left.move = null;
 			this.state.touches.left.id = null;
@@ -267,7 +269,7 @@ export default class StarshipDefenceGame {
 			this.state.driftX = "";
 		}
 
-		if (touch.pointerId === this.state.touches.right.id) {
+		if (touch.data.identifier === this.state.touches.right.id) {
 			this.state.touches.right.id = null;
 			this.state.shotActive = false;
 		}

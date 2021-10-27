@@ -110,10 +110,14 @@ export default class AsteroidManager extends Manager {
 
 		const maxTeoreticalX =
 			this.state.normalInstantlyX +
-			0.1 * 60 * Math.cos((this.direction * Math.PI) / 180);
+			this.generalManager.settings.asteroidSpeed *
+				this.generalManager.settings.ticksToChangeAsteroidDirection *
+				Math.cos((this.direction * Math.PI) / 180);
 		const maxTeoreticalY =
 			this.state.normalInstantlyY +
-			0.1 * 60 * Math.sin((this.direction * Math.PI) / 180);
+			this.generalManager.settings.asteroidSpeed *
+				this.generalManager.settings.ticksToChangeAsteroidDirection *
+				Math.sin((this.direction * Math.PI) / 180);
 		if (
 			maxTeoreticalX > 100 - this.generalManager.settings.asteroidSizeW / 2 ||
 			maxTeoreticalX < this.generalManager.settings.asteroidSizeW / 2 ||
@@ -126,9 +130,11 @@ export default class AsteroidManager extends Manager {
 
 	moveByDirection() {
 		this.state.normalInstantlyX +=
-			0.1 * Math.cos((this.direction * Math.PI) / 180);
+			this.generalManager.settings.asteroidSpeed *
+			Math.cos((this.direction * Math.PI) / 180);
 		this.state.normalInstantlyY +=
-			0.1 * Math.sin((this.direction * Math.PI) / 180);
+			this.generalManager.settings.asteroidSpeed *
+			Math.sin((this.direction * Math.PI) / 180);
 	}
 
 	onTick() {
@@ -138,7 +144,11 @@ export default class AsteroidManager extends Manager {
 		}
 		this.state.time += 1;
 
-		if (this.state.time % 60 === 0) {
+		if (
+			this.state.time %
+				this.generalManager.settings.ticksToChangeAsteroidDirection ===
+			0
+		) {
 			this.updateRundomDirection();
 		}
 		this.moveByDirection();

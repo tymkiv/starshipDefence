@@ -10,7 +10,8 @@ export default class Manager {
 			y: null,
 		};
 
-		this.generalManager.addListener("resize", this.onResize.bind(this));
+		this.resizeHandler = this.onResize.bind(this);
+		this.generalManager.addListener("resize", this.resizeHandler);
 	}
 
 	init() {
@@ -18,4 +19,8 @@ export default class Manager {
 	}
 
 	onResize() {} // eslint-disable-line class-methods-use-this
+
+	onDestroy() {
+		this.generalManager.removeListener("resize", this.resizeHandler);
+	}
 }

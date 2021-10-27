@@ -5,6 +5,7 @@ import { throttle } from "underscore";
 import BgManager from "./BgManager";
 import StarshipManager from "./StarshipManager";
 import AsteroidManager from "./AsteroidManager";
+import CollisionDetection from "./CollisionDetection";
 
 export default class StarshipDefenceGame {
 	constructor(DOMcontainer) {
@@ -32,9 +33,9 @@ export default class StarshipDefenceGame {
 			starshipFriction: 0.05,
 			bulletRadius: 0.5,
 			bulletSpeed: 1,
-			shotThrottleTimeout: 500,
-			asteroidSizeW: 10,
-			asteroidSizeH: 20,
+			shotThrottleTimeout: 100,
+			asteroidSizeW: 5,
+			asteroidSizeH: 10,
 		};
 
 		this.state = {
@@ -61,11 +62,14 @@ export default class StarshipDefenceGame {
 				tick: [],
 				shot: [],
 			},
+			bulletsArray: [],
+			asteroidsArray: [],
 		};
 
 		this.managers = {
 			bg: new BgManager(this),
 			starship: new StarshipManager(this),
+			collisionDetection: new CollisionDetection(this),
 		};
 
 		this.updateSize();
@@ -141,13 +145,15 @@ export default class StarshipDefenceGame {
 		this.managers.bg.init(this.loader.resources.bg);
 		this.managers.starship.init(this.loader.resources.starship);
 
-		const asteroid = new AsteroidManager(this);
-		asteroid.init(
-			this.loader.resources.asteroid,
-			this.loader.resources.explosion,
-			10,
-			10
-		);
+		for (let i = 0; i < 10; i++) {
+			const asteroid = new AsteroidManager(this);
+			asteroid.init(
+				this.loader.resources.asteroid,
+				this.loader.resources.explosion,
+				Math.random() * 100,
+				Math.random() * 50
+			);
+		}
 
 		window.requestAnimationFrame(this.onTick.bind(this));
 
@@ -168,6 +174,15 @@ export default class StarshipDefenceGame {
 		this.state.eventCallbacks.tick.forEach((callback) => {
 			callback();
 		});
+
+		if (this.state.bulletsArray.length !== this.tempNumber) {
+			this.tempNumber = this.state.bulletsArray.length;
+			console.log("bullets:", this.state.bulletsArray);
+		}
+		if (this.state.asteroidsArray.length !== this.tempNumberAsteroids) {
+			this.tempNumberAsteroids = this.state.asteroidsArray.length;
+			console.log("asteroids:", this.state.asteroidsArray);
+		}
 
 		window.requestAnimationFrame(this.onTick.bind(this));
 	}

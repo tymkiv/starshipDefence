@@ -1,25 +1,27 @@
 import * as PIXI from "pixi.js";
 
-export default class Bullet {
+import Manager from "./Manager";
+
+export default class Bullet extends Manager {
 	constructor(generalManager, normalX, normalY) {
-		this.generalManager = generalManager;
-		this.state = {
-			normalX,
-			normalY,
-			x: null,
-			y: null,
-			radius: null,
-			isDestroyed: false,
-		};
+		super(generalManager);
+
+		this.state.normalX = normalX;
+		this.state.normalY = normalY;
+		this.state.x = null;
+		this.state.y = null;
+		this.state.radius = null;
+		this.state.isDestroyed = false;
+		this.state.shouldBeDestroyed = false;
 
 		this.updateSize();
 		this.create();
 		this.updatePosition();
 
 		this.tickHandler = this.onTick.bind(this);
-		this.resizeHandler = this.onResize.bind(this);
 		this.generalManager.addListener("tick", this.tickHandler);
-		this.generalManager.addListener("resize", this.resizeHandler);
+
+		this.generalManager.state.bulletsArray.push(this);
 	}
 
 	create() {
@@ -49,18 +51,30 @@ export default class Bullet {
 	}
 
 	move() {
-		if (this.state.normalY <= 0) this.destroy();
+		if (this.state.normalY <= 0) this.onDestroy();
 		this.state.normalY -= this.generalManager.settings.bulletSpeed;
 	}
 
-	destroy() {
+	onDestroy() {
+		super.onDestroy();
 		this.state.isDestroyed = true;
 		this.generalManager.removeListener("tick", this.tickHandler);
-		this.generalManager.removeListener("resize", this.resizeHandler);
 		this.graphics.destroy();
+		this.generalManager.state.bulletsArray =
+			this.generalManager.state.bulletsArray.filter(
+				(bullet) => bullet !== this
+			);
+	}
+
+	destroy() {
+		this.state.shouldBeDestroyed = true;
 	}
 
 	onTick() {
+		if (this.state.shouldBeDestroyed) {
+			this.onDestroy();
+			return;
+		}
 		this.move();
 		this.updatePosition();
 	}

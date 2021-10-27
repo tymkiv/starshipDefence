@@ -11,6 +11,8 @@ export default class AsteroidManager extends Manager {
 		this.state.normalInstantlyY = y;
 		this.state.normalX = x;
 		this.state.normalY = y;
+		this.state.shouldBeDestroyed = false;
+		this.state.time = 0;
 
 		this.asteroidData = asteroidData;
 		this.explosionData = explosionData;
@@ -21,11 +23,18 @@ export default class AsteroidManager extends Manager {
 
 		this.generalManager.app.stage.addChild(this.asteroidSprite);
 
+		this.updateRundomDirection();
+
 		this.updateSize();
 
 		this.calculateNormalPositionInstantly();
 
 		this.updatePosition();
+
+		this.tickHandler = this.onTick.bind(this);
+		this.generalManager.addListener("tick", this.tickHandler);
+
+		this.generalManager.state.asteroidsArray.push(this);
 
 		// setTimeout(() => {
 		// 	this.asteroidSprite.texture = this.explosionData.texture;
@@ -75,6 +84,53 @@ export default class AsteroidManager extends Manager {
 	calculateNormalPositionInstantly() {
 		this.state.normalX = this.state.normalInstantlyX;
 		this.state.normalY = this.state.normalInstantlyY;
+	}
+
+	onDestroy() {
+		super.onDestroy();
+		this.generalManager.removeListener("tick", this.tickHandler);
+		this.generalManager.state.asteroidsArray =
+			this.generalManager.state.asteroidsArray.filter(
+				(asteroid) => asteroid !== this
+			);
+
+		this.asteroidSprite.texture = this.explosionData.texture;
+
+		setTimeout(() => {
+			this.asteroidSprite.parent.removeChild(this.asteroidSprite);
+		}, 300);
+	}
+
+	updateRundomDirection() {
+		this.direction = Math.random() * 360;
+	}
+
+	moveByDirection() {
+		this.state.normalInstantlyX +=
+			0.1 * Math.cos((this.direction * Math.PI) / 180);
+		this.state.normalInstantlyY +=
+			0.1 * Math.sin((this.direction * Math.PI) / 180);
+	}
+
+	onTick() {
+		if (this.state.shouldBeDestroyed) {
+			this.onDestroy();
+			return;
+		}
+		this.state.time += 1;
+
+		if (this.state.time % 60 === 0) {
+			this.updateRundomDirection();
+		}
+		this.moveByDirection();
+
+		this.calculateNormalPositionFriction();
+
+		this.updatePosition();
+	}
+
+	destroy() {
+		this.state.shouldBeDestroyed = true;
 	}
 
 	onResize() {

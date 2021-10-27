@@ -4,6 +4,10 @@ export default class Menu {
 	constructor(generalManager) {
 		this.generalManager = generalManager;
 
+		this.state = {
+			isInited: false,
+		};
+
 		this.styleDefault = new PIXI.TextStyle({
 			fontFamily: "IrishGrover",
 			fontSize: 36,
@@ -29,14 +33,18 @@ export default class Menu {
 			dropShadowAngle: Math.PI / 6,
 			dropShadowDistance: 6,
 		});
+
+		this.resizeHandler = this.onResize.bind(this);
+		this.generalManager.addListener("resize", this.resizeHandler);
 	}
 
 	init() {
+		this.state.isInited = true;
 		this.createDefaultMessage();
 	}
 
 	messageBody() {
-		this.message.position.set(window.innerWidth - this.message.width, 0);
+		this.updatePosition();
 		this.generalManager.app.stage.addChild(this.message);
 		this.message.interactive = true;
 		this.message.buttonMode = true;
@@ -66,5 +74,18 @@ export default class Menu {
 		event.stopPropagation();
 		console.log(event);
 		return this;
+	}
+
+	updatePosition() {
+		this.message.position.set(
+			this.generalManager.state.width - this.message.width,
+			0
+		);
+	}
+
+	onResize() {
+		if (!this.state.isInited) return;
+
+		this.updatePosition();
 	}
 }

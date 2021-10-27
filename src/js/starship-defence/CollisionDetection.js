@@ -1,4 +1,4 @@
-import hitTestRectangle from "./extraFunctions";
+import { hitTestRectangle } from "./extraFunctions";
 
 export default class CollisionDetection {
 	constructor(generalManager) {

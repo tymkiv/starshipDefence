@@ -7,6 +7,8 @@ import StarshipManager from "./StarshipManager";
 import AsteroidManager from "./AsteroidManager";
 import CollisionDetection from "./CollisionDetection";
 
+import { getRandomArbitrary } from "./extraFunctions";
+
 export default class StarshipDefenceGame {
 	constructor(DOMcontainer) {
 		this.DOM = {
@@ -150,8 +152,14 @@ export default class StarshipDefenceGame {
 			asteroid.init(
 				this.loader.resources.asteroid,
 				this.loader.resources.explosion,
-				Math.random() * 100,
-				Math.random() * 50
+				getRandomArbitrary(
+					this.settings.asteroidSizeW / 2,
+					100 - this.settings.asteroidSizeW / 2
+				),
+				getRandomArbitrary(
+					this.settings.asteroidSizeH / 2,
+					50 - this.settings.asteroidSizeH / 2
+				)
 			);
 		}
 

@@ -6,7 +6,11 @@ import Manager from "./Manager";
 export default class AsteroidManager extends Manager {
 	init(asteroidData, explosionData, x, y) {
 		super.init();
-
+		console.log(x, y);
+		console.log(
+			this.generalManager.settings.asteroidSizeW,
+			this.generalManager.settings.asteroidSizeH
+		);
 		this.state.normalInstantlyX = x;
 		this.state.normalInstantlyY = y;
 		this.state.normalX = x;
@@ -103,6 +107,21 @@ export default class AsteroidManager extends Manager {
 
 	updateRundomDirection() {
 		this.direction = Math.random() * 360;
+
+		const maxTeoreticalX =
+			this.state.normalInstantlyX +
+			0.1 * 60 * Math.cos((this.direction * Math.PI) / 180);
+		const maxTeoreticalY =
+			this.state.normalInstantlyY +
+			0.1 * 60 * Math.sin((this.direction * Math.PI) / 180);
+		if (
+			maxTeoreticalX > 100 - this.generalManager.settings.asteroidSizeW / 2 ||
+			maxTeoreticalX < this.generalManager.settings.asteroidSizeW / 2 ||
+			maxTeoreticalY > 50 - this.generalManager.settings.asteroidSizeH / 2 ||
+			maxTeoreticalY < this.generalManager.settings.asteroidSizeH / 2
+		) {
+			this.updateRundomDirection();
+		}
 	}
 
 	moveByDirection() {

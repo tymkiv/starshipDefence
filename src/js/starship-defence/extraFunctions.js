@@ -30,4 +30,8 @@ function hitTestRectangle(r1, r2) {
 	return hit;
 }
 
-export default hitTestRectangle;
+function getRandomArbitrary(min, max) {
+	return Math.random() * (max - min) + min;
+}
+
+export { hitTestRectangle, getRandomArbitrary };

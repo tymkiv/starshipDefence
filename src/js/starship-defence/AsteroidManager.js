@@ -6,16 +6,14 @@ import Manager from "./Manager";
 export default class AsteroidManager extends Manager {
 	init(asteroidData, explosionData, x, y) {
 		super.init();
-		console.log(x, y);
-		console.log(
-			this.generalManager.settings.asteroidSizeW,
-			this.generalManager.settings.asteroidSizeH
-		);
+
 		this.state.normalInstantlyX = x;
 		this.state.normalInstantlyY = y;
 		this.state.normalX = x;
 		this.state.normalY = y;
+		this.state.shouldBeDetonate = false;
 		this.state.shouldBeDestroyed = false;
+		this.state.destroyTime = null;
 		this.state.time = 0;
 
 		this.asteroidData = asteroidData;
@@ -39,20 +37,12 @@ export default class AsteroidManager extends Manager {
 		this.generalManager.addListener("tick", this.tickHandler);
 
 		this.generalManager.state.asteroidsArray.push(this);
-
-		// setTimeout(() => {
-		// 	this.asteroidSprite.texture = this.explosionData.texture;
-		// }, 3000);
 	}
 
 	updateSize() {
 		const { width, height } = contain(
-			(this.generalManager.state.width *
-				this.generalManager.settings.asteroidSizeW) /
-				100,
-			(this.generalManager.state.height *
-				this.generalManager.settings.asteroidSizeH) /
-				100,
+			(this.generalManager.state.width * this.generalManager.settings.asteroidSizeW) / 100,
+			(this.generalManager.state.height * this.generalManager.settings.asteroidSizeH) / 100,
 			this.naturalWidth,
 			this.naturalHeight
 		);
@@ -65,12 +55,8 @@ export default class AsteroidManager extends Manager {
 	}
 
 	updatePosition() {
-		this.state.x =
-			(this.state.normalX / 100) * this.generalManager.state.width -
-			this.state.width / 2;
-		this.state.y =
-			(this.state.normalY / 100) * this.generalManager.state.height -
-			this.state.height / 2;
+		this.state.x = (this.state.normalX / 100) * this.generalManager.state.width - this.state.width / 2;
+		this.state.y = (this.state.normalY / 100) * this.generalManager.state.height - this.state.height / 2;
 
 		this.asteroidSprite.x = this.state.x;
 		this.asteroidSprite.y = this.state.y;
@@ -78,11 +64,9 @@ export default class AsteroidManager extends Manager {
 
 	calculateNormalPositionFriction() {
 		this.state.normalX +=
-			this.generalManager.settings.starshipFriction *
-			(this.state.normalInstantlyX - this.state.normalX);
+			this.generalManager.settings.starshipFriction * (this.state.normalInstantlyX - this.state.normalX);
 		this.state.normalY +=
-			this.generalManager.settings.starshipFriction *
-			(this.state.normalInstantlyY - this.state.normalY);
+			this.generalManager.settings.starshipFriction * (this.state.normalInstantlyY - this.state.normalY);
 	}
 
 	calculateNormalPositionInstantly() {
@@ -90,19 +74,21 @@ export default class AsteroidManager extends Manager {
 		this.state.normalY = this.state.normalInstantlyY;
 	}
 
+	onDetonate() {
+		this.generalManager.state.asteroidsArray = this.generalManager.state.asteroidsArray.filter(
+			(asteroid) => asteroid !== this
+		);
+		this.asteroidSprite.texture = this.explosionData.texture;
+
+		this.state.shouldBeDetonate = false;
+		this.state.shouldBeDestroyed = true;
+		this.state.destroyTime = this.state.time + this.generalManager.settings.asteroidDelayAfterDetonate;
+	}
+
 	onDestroy() {
 		super.onDestroy();
 		this.generalManager.removeListener("tick", this.tickHandler);
-		this.generalManager.state.asteroidsArray =
-			this.generalManager.state.asteroidsArray.filter(
-				(asteroid) => asteroid !== this
-			);
-
-		this.asteroidSprite.texture = this.explosionData.texture;
-
-		setTimeout(() => {
-			this.asteroidSprite.parent.removeChild(this.asteroidSprite);
-		}, 300);
+		this.asteroidSprite.parent.removeChild(this.asteroidSprite);
 	}
 
 	updateRundomDirection() {
@@ -130,25 +116,30 @@ export default class AsteroidManager extends Manager {
 
 	moveByDirection() {
 		this.state.normalInstantlyX +=
-			this.generalManager.settings.asteroidSpeed *
-			Math.cos((this.direction * Math.PI) / 180);
+			this.generalManager.settings.asteroidSpeed * Math.cos((this.direction * Math.PI) / 180);
 		this.state.normalInstantlyY +=
-			this.generalManager.settings.asteroidSpeed *
-			Math.sin((this.direction * Math.PI) / 180);
+			this.generalManager.settings.asteroidSpeed * Math.sin((this.direction * Math.PI) / 180);
 	}
 
 	onTick() {
+		if (this.generalManager.state.isPause) return;
+
+		this.state.time += 1;
+		// console.log(this.state.time, this.state.destroyTime);
+
 		if (this.state.shouldBeDestroyed) {
-			this.onDestroy();
+			if (this.state.time === this.state.destroyTime) {
+				this.onDestroy();
+			}
 			return;
 		}
-		this.state.time += 1;
 
-		if (
-			this.state.time %
-				this.generalManager.settings.ticksToChangeAsteroidDirection ===
-			0
-		) {
+		if (this.state.shouldBeDetonate) {
+			this.onDetonate();
+			return;
+		}
+
+		if (this.state.time % this.generalManager.settings.ticksToChangeAsteroidDirection === 0) {
 			this.updateRundomDirection();
 		}
 		this.moveByDirection();
@@ -158,8 +149,15 @@ export default class AsteroidManager extends Manager {
 		this.updatePosition();
 	}
 
+	detonate() {
+		this.state.shouldBeDetonate = true;
+	}
+
 	destroy() {
-		this.state.shouldBeDestroyed = true;
+		this.onDestroy();
+		this.generalManager.state.asteroidsArray = this.generalManager.state.asteroidsArray.filter(
+			(asteroid) => asteroid !== this
+		);
 	}
 
 	onResize() {

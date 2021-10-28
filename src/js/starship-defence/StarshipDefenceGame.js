@@ -6,7 +6,7 @@ import BgManager from "./BgManager";
 import StarshipManager from "./StarshipManager";
 import AsteroidCreatorManager from "./AsteroidCreatorManager";
 import CollisionDetection from "./CollisionDetection";
-import Menu from "./Menu";
+import MenuManager from "./menu/MenuManager";
 
 export default class StarshipDefenceGame {
 	constructor(DOMcontainer) {
@@ -40,31 +40,55 @@ export default class StarshipDefenceGame {
 			asteroidSpeed: 0.5,
 			// in ticks
 			ticksToChangeAsteroidDirection: 30,
+			asteroidDelayAfterDetonate: 20,
+
+			textStyleDefault: new PIXI.TextStyle({
+				fontFamily: "IrishGrover",
+				fontSize: 36,
+				fill: "white",
+				stroke: "#ff3300",
+				strokeThickness: 4,
+				dropShadow: true,
+				dropShadowColor: "#000000",
+				dropShadowBlur: 4,
+				dropShadowAngle: Math.PI / 6,
+				dropShadowDistance: 6,
+			}),
+
+			textStyleHover: new PIXI.TextStyle({
+				fontFamily: "IrishGrover",
+				fontSize: 36,
+				fill: "yellow",
+				stroke: "#ff3300",
+				strokeThickness: 4,
+				dropShadow: true,
+				dropShadowColor: "#000000",
+				dropShadowBlur: 4,
+				dropShadowAngle: Math.PI / 6,
+				dropShadowDistance: 6,
+			}),
 		};
 
 		this.state = {
 			width: null,
 			height: null,
-			driftX: null,
-			keyLeftActive: false,
-			keyRightActive: false,
-			shotActive: false,
-			touches: {
-				left: {
-					start: null,
-					move: null,
-					id: null,
-				},
-				right: {
-					id: null,
-				},
-			},
+			isPause: false,
 			eventCallbacks: {
 				resize: [],
 				load: [],
 				progress: [],
 				tick: [],
-				shot: [],
+				keyEscapeDown: [],
+				keySpaceDown: [],
+				keyArrowRightDown: [],
+				keyArrowLeftDown: [],
+				keyEscapeUp: [],
+				keySpaceUp: [],
+				keyArrowRightUp: [],
+				keyArrowLeftUp: [],
+				pointerdown: [],
+				pointermove: [],
+				pointerup: [],
 			},
 			bulletsArray: [],
 			asteroidsArray: [],
@@ -75,7 +99,7 @@ export default class StarshipDefenceGame {
 			starship: new StarshipManager(this),
 			collisionDetection: new CollisionDetection(this),
 			asteroidCreatorManager: new AsteroidCreatorManager(this),
-			menu: new Menu(this),
+			menu: new MenuManager(this),
 		};
 
 		this.updateSize();
@@ -99,22 +123,17 @@ export default class StarshipDefenceGame {
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
 		});
+		this.app.stage.interactive = true;
+		this.app.stage.sortableChildren = true;
 		this.DOM.container.appendChild(this.app.view);
-
 		this.loader = PIXI.Loader.shared;
 
 		// ---- -> EVENT LISTENERS ----
 
-		this.shotHandler = throttle(
-			this.onShot.bind(this),
-			this.settings.shotThrottleTimeout,
-			{ trailing: false }
-		);
-
 		window.addEventListener("resize", throttle(this.onResize.bind(this), 300));
 		window.addEventListener("keydown", this.onKeydown.bind(this));
 		window.addEventListener("keyup", this.onKeyup.bind(this));
-		this.app.stage.interactive = true;
+
 		this.app.stage.on("pointerdown", this.onPointerdown.bind(this));
 		this.app.stage.on("pointermove", this.onPointermove.bind(this));
 		this.app.stage.on("pointerup", this.onPointerup.bind(this));
@@ -133,37 +152,49 @@ export default class StarshipDefenceGame {
 	}
 
 	addListener(type, callback) {
-		if (
-			!this.state.eventCallbacks[type] ||
-			this.state.eventCallbacks[type].includes(callback)
-		)
-			return;
+		if (!this.state.eventCallbacks[type] || this.state.eventCallbacks[type].includes(callback)) return;
 
 		this.state.eventCallbacks[type].push(callback);
 	}
 
 	removeListener(type, callback) {
-		this.state.eventCallbacks[type] = this.state.eventCallbacks[type].filter(
-			(oldCallback) => callback !== oldCallback
-		);
+		this.state.eventCallbacks[type] = this.state.eventCallbacks[type].filter((oldCallback) => callback !== oldCallback);
+	}
+
+	pause() {
+		this.state.isPause = true;
+	}
+
+	unpause() {
+		this.state.isPause = false;
+	}
+
+	startGame() {
+		this.managers.asteroidCreatorManager.create();
+		this.managers.starship.create();
+	}
+
+	cancelGame() {
+		this.managers.starship.onDestroy();
+		this.managers.asteroidCreatorManager.destroy();
+		this.state.bulletsArray.forEach((bullet) => {
+			bullet.destroyInstantly();
+		});
 	}
 
 	onLoad() {
 		this.managers.bg.init(this.loader.resources.bg);
 		this.managers.starship.init(this.loader.resources.starship);
-
-		this.managers.asteroidCreatorManager.init(
-			this.loader.resources.asteroid,
-			this.loader.resources.explosion
-		);
-
+		this.managers.asteroidCreatorManager.init(this.loader.resources.asteroid, this.loader.resources.explosion);
 		this.managers.menu.init();
 
-		window.requestAnimationFrame(this.onTick.bind(this));
+		this.startGame();
 
 		this.state.eventCallbacks.load.forEach((callback) => {
 			callback();
 		});
+
+		window.requestAnimationFrame(this.onTick.bind(this));
 	}
 
 	onProgress({ progress }) {
@@ -173,8 +204,6 @@ export default class StarshipDefenceGame {
 	}
 
 	onTick() {
-		if (this.state.shotActive) this.shotHandler();
-
 		this.state.eventCallbacks.tick.forEach((callback) => {
 			callback();
 		});
@@ -191,88 +220,90 @@ export default class StarshipDefenceGame {
 		window.requestAnimationFrame(this.onTick.bind(this));
 	}
 
-	onShot() {
-		this.state.eventCallbacks.shot.forEach((callback) => {
+	onEscapeDown() {
+		this.state.eventCallbacks.keyEscapeDown.forEach((callback) => {
+			callback();
+		});
+	}
+
+	onSpaceDown() {
+		this.state.eventCallbacks.keySpaceDown.forEach((callback) => {
+			callback();
+		});
+	}
+
+	onArrowRightDown() {
+		this.state.eventCallbacks.keyArrowRightDown.forEach((callback) => {
+			callback();
+		});
+	}
+
+	onArrowLeftDown() {
+		this.state.eventCallbacks.keyArrowLeftDown.forEach((callback) => {
+			callback();
+		});
+	}
+
+	onEscapeUp() {
+		this.state.eventCallbacks.keyEscapeUp.forEach((callback) => {
+			callback();
+		});
+	}
+
+	onSpaceUp() {
+		this.state.eventCallbacks.keySpaceUp.forEach((callback) => {
+			callback();
+		});
+	}
+
+	onArrowRightUp() {
+		this.state.eventCallbacks.keyArrowRightUp.forEach((callback) => {
+			callback();
+		});
+	}
+
+	onArrowLeftUp() {
+		this.state.eventCallbacks.keyArrowLeftUp.forEach((callback) => {
 			callback();
 		});
 	}
 
 	onKeydown({ code }) {
-		if (code === "ArrowLeft") {
-			this.state.keyLeftActive = true;
-			this.state.driftX = "left";
-		}
-		if (code === "ArrowRight") {
-			this.state.keyRightActive = true;
-			this.state.driftX = "right";
-		}
-		if (code === "Space") {
-			this.state.shotActive = true;
-		}
+		if (code === "ArrowLeft") this.onArrowLeftDown();
+
+		if (code === "ArrowRight") this.onArrowRightDown();
+
+		if (code === "Space") this.onSpaceDown();
+
+		if (code === "Escape") this.onEscapeDown();
 	}
 
 	onKeyup({ code }) {
-		if (code === "ArrowLeft") {
-			this.state.keyLeftActive = false;
+		if (code === "ArrowLeft") this.onArrowLeftUp();
 
-			if (this.state.driftX === "left")
-				this.state.driftX = this.state.keyRightActive ? "right" : "";
-		}
-		if (code === "ArrowRight") {
-			this.state.keyRightActive = false;
+		if (code === "ArrowRight") this.onArrowRightUp();
 
-			if (this.state.driftX === "right")
-				this.state.driftX = this.state.keyLeftActive ? "left" : "";
-		}
-		if (code === "Space") {
-			this.state.shotActive = false;
-		}
+		if (code === "Space") this.onSpaceUp();
+
+		if (code === "Escape") this.onEscapeUp();
 	}
 
 	onPointerdown(touch) {
-		if (
-			touch.data.global.x < this.state.width / 2 &&
-			!this.state.touches.left.id
-		) {
-			this.state.touches.left.start = touch.data.global.x;
-			this.state.touches.left.id = touch.data.identifier;
-		}
-
-		if (
-			touch.data.global.x > this.state.width / 2 &&
-			!this.state.touches.right.id
-		) {
-			this.state.touches.right.id = touch.data.identifier;
-			this.state.shotActive = true;
-		}
+		this.state.eventCallbacks.pointerdown.forEach((callback) => {
+			callback(touch);
+		});
 	}
 
 	onPointermove(touch) {
-		if (touch.data.identifier === this.state.touches.left.id) {
-			this.state.touches.left.move = touch.data.global.x;
-
-			if (this.state.touches.left.move > this.state.touches.left.start) {
-				this.state.driftX = "right";
-			}
-			if (this.state.touches.left.move < this.state.touches.left.start) {
-				this.state.driftX = "left";
-			}
-		}
+		this.state.eventCallbacks.pointermove.forEach((callback) => {
+			callback(touch);
+		});
 	}
 
 	onPointerup(touch) {
-		if (touch.data.identifier === this.state.touches.left.id) {
-			this.state.touches.left.start = null;
-			this.state.touches.left.move = null;
-			this.state.touches.left.id = null;
-
-			this.state.driftX = "";
-		}
-
-		if (touch.data.identifier === this.state.touches.right.id) {
-			this.state.touches.right.id = null;
-			this.state.shotActive = false;
-		}
+		this.state.eventCallbacks.pointerup.forEach((callback) => {
+			callback(touch);
+		});
 	}
 
 	onResize() {

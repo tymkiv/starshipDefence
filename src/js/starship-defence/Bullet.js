@@ -34,17 +34,14 @@ export default class Bullet extends Manager {
 	}
 
 	updateSize() {
-		this.state.radius =
-			(this.generalManager.settings.bulletRadius / 100) *
-			this.generalManager.state.width;
+		this.state.radius = (this.generalManager.settings.bulletRadius / 100) * this.generalManager.state.width;
 	}
 
 	updatePosition() {
 		if (this.state.isDestroyed) return;
 
 		this.state.x = (this.state.normalX / 100) * this.generalManager.state.width;
-		this.state.y =
-			(this.state.normalY / 100) * this.generalManager.state.height;
+		this.state.y = (this.state.normalY / 100) * this.generalManager.state.height;
 
 		this.graphics.x = this.state.x;
 		this.graphics.y = this.state.y;
@@ -60,17 +57,24 @@ export default class Bullet extends Manager {
 		this.state.isDestroyed = true;
 		this.generalManager.removeListener("tick", this.tickHandler);
 		this.graphics.destroy();
-		this.generalManager.state.bulletsArray =
-			this.generalManager.state.bulletsArray.filter(
-				(bullet) => bullet !== this
-			);
+		this.generalManager.state.bulletsArray = this.generalManager.state.bulletsArray.filter((bullet) => bullet !== this);
 	}
 
 	destroy() {
 		this.state.shouldBeDestroyed = true;
 	}
 
+	destroyInstantly() {
+		super.onDestroy();
+		this.state.isDestroyed = true;
+		this.generalManager.removeListener("tick", this.tickHandler);
+		this.graphics.destroy();
+		this.generalManager.state.bulletsArray = this.generalManager.state.bulletsArray.filter((bullet) => bullet !== this);
+	}
+
 	onTick() {
+		if (this.generalManager.state.isPause) return;
+
 		if (this.state.shouldBeDestroyed) {
 			this.onDestroy();
 			return;

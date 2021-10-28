@@ -8,6 +8,8 @@ export default class CollisionDetection {
 	}
 
 	detect() {
+		if (this.generalManager.state.isPause) return;
+
 		this.generalManager.state.bulletsArray.forEach((bullet) => {
 			this.generalManager.state.asteroidsArray.forEach((asteroid) => {
 				if (
@@ -20,7 +22,7 @@ export default class CollisionDetection {
 
 				if (hitTestRectangle(bullet.graphics, asteroid.asteroidSprite)) {
 					bullet.destroy();
-					asteroid.destroy();
+					asteroid.detonate();
 				}
 			});
 		});

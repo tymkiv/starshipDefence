@@ -7,11 +7,16 @@ export default class AsteroidCreatorManager {
 	}
 
 	init(asteroidData, explosionData) {
+		this.asteroidData = asteroidData;
+		this.explosionData = explosionData;
+	}
+
+	create() {
 		for (let i = 0; i < 10; i++) {
 			const asteroid = new AsteroidManager(this.generalManager);
 			asteroid.init(
-				asteroidData,
-				explosionData,
+				this.asteroidData,
+				this.explosionData,
 				getRandomArbitrary(
 					this.generalManager.settings.asteroidSizeW / 2,
 					100 - this.generalManager.settings.asteroidSizeW / 2
@@ -22,5 +27,11 @@ export default class AsteroidCreatorManager {
 				)
 			);
 		}
+	}
+
+	destroy() {
+		this.generalManager.state.asteroidsArray.forEach((asteroid) => {
+			asteroid.destroy();
+		});
 	}
 }

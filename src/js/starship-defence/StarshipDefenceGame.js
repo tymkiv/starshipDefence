@@ -6,7 +6,7 @@ import BgManager from "./BgManager";
 import StarshipManager from "./StarshipManager";
 import AsteroidCreatorManager from "./AsteroidCreatorManager";
 import CollisionDetection from "./CollisionDetection";
-import MenuManager from "./menu/MenuManager";
+import MenuManager from "./MenuManager";
 import GameManager from "./GameManager";
 import GameOver from "./GameOverManager";
 
@@ -176,7 +176,6 @@ export default class StarshipDefenceGame {
 	}
 
 	onWin(gameName) {
-		console.log('win');
 		this.managers.gameOverText.init("You win!");
 
 		setTimeout(() => {

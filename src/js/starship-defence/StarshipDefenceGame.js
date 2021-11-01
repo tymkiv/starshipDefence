@@ -176,6 +176,7 @@ export default class StarshipDefenceGame {
 	}
 
 	onWin(gameName) {
+		console.log('win');
 		this.managers.gameOverText.init("You win!");
 
 		setTimeout(() => {

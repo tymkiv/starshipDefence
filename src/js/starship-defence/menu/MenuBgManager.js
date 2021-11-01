@@ -24,7 +24,6 @@ export default class MenuBgManager extends Manager {
 	}
 
 	setSize() {
-		console.log(this.graphics.width);
 		this.graphics.width = this.generalManager.state.width;
 		this.graphics.height = this.generalManager.state.height;
 	}

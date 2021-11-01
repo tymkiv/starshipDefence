@@ -14,7 +14,8 @@ export default class GameOver extends Manager {
 
 	destroy() {
 		if (this.message && this.message.destroy) this.message.destroy();
-		this.isInited = false;
+		this.state.isInited = false;
+		this.message = null;
 	}
 
 	messageBody() {

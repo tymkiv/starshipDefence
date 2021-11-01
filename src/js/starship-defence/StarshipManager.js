@@ -88,6 +88,7 @@ export default class StarshipManager extends Manager {
 		this.starshipSprite.parent.removeChild(this.starshipSprite);
 		this.starshipSprite.destroy();
 		this.starshipSprite = null;
+		this.state.isInited = false;
 	}
 
 	onKeySpaceDown() {
@@ -233,7 +234,7 @@ export default class StarshipManager extends Manager {
 	}
 
 	onTick() {
-		if (this.generalManager.state.isPause) return;
+		if (this.generalManager.managers.game.state.isPause) return;
 
 		if (this.state.driftX === "left") this.moveLeft();
 		if (this.state.driftX === "right") this.moveRight();
@@ -244,6 +245,8 @@ export default class StarshipManager extends Manager {
 	}
 
 	onResize() {
+		if (!this.state.isInited) return;
+
 		this.updateSize();
 		this.updatePosition();
 	}

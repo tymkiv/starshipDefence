@@ -4,6 +4,7 @@ import Manager from "../Manager";
 
 export default class MenuToggler extends Manager {
 	init(onMenuOpen, onMenuClose) {
+		if (this.state.isInited) return;
 		super.init();
 
 		this.onMenuOpen = onMenuOpen;
@@ -12,7 +13,16 @@ export default class MenuToggler extends Manager {
 		this.state.text = "Menu";
 		this.state.isOpen = false;
 
+		this.toggleHandler = this.toggle.bind(this);
+		this.generalManager.addListener("keyEscapeDown", this.toggleHandler);
+
 		this.createDefaultMessage();
+	}
+
+	destroy() {
+		if (this.message && this.message.destroy) this.message.destroy();
+		this.state.isInited = false;
+		this.generalManager.removeListener("keyEscapeDown", this.toggleHandler);
 	}
 
 	messageBody() {

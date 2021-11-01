@@ -2,16 +2,25 @@ import * as PIXI from "pixi.js";
 
 import Manager from "../Manager";
 
-export default class RestartBtn extends Manager {
-	init(onClick) {
+export default class SomeBtn extends Manager {
+	init(onClick, text, number, index) {
+		if (this.state.isInited) return;
 		super.init();
+
+		this.state.number = number || this.state.number || 1;
+		this.state.index = index || this.state.index || 0;
 
 		this.onClick = onClick;
 
-		this.state.text = "Restart current game";
+		this.state.text = text;
 		this.state.isOpen = false;
 
-		// this.createDefaultMessage();
+		console.log(this);
+	}
+
+	destroy() {
+		if (this.message && this.message.destroy) this.message.destroy();
+		this.isInited = false;
 	}
 
 	messageBody() {
@@ -63,10 +72,13 @@ export default class RestartBtn extends Manager {
 		this.onClick();
 	}
 
-	updatePosition() {
+	updatePosition(number, index) {
+		this.state.number = number || this.state.number || 1;
+		this.state.index = index || this.state.index || 0;
+
 		this.message.position.set(
 			this.generalManager.state.width / 2 - this.message.width / 2,
-			this.generalManager.state.height / 10
+			this.generalManager.state.height / 2 - this.message.height / 2 + this.message.height * this.state.index - (this.state.number - 1) * this.state.height / 2
 		);
 	}
 

@@ -7,11 +7,17 @@ import StarshipManager from "./StarshipManager";
 import AsteroidCreatorManager from "./AsteroidCreatorManager";
 import CollisionDetection from "./CollisionDetection";
 import MenuManager from "./menu/MenuManager";
+import GameManager from "./GameManager";
+import GameOver from "./GameOverManager";
 
 export default class StarshipDefenceGame {
-	constructor(DOMcontainer) {
+	constructor(props = {}) {
 		this.DOM = {
-			container: DOMcontainer,
+			container: props.DOMcontainer,
+			menuToggler: props.menuToggler,
+			menuWrapper: props.menuWrapper,
+			restartBtn: props.restartBtn,
+			defaultGameBtn: props.defaultGameBtn,
 		};
 
 		const stats = new Stats();
@@ -89,6 +95,8 @@ export default class StarshipDefenceGame {
 				pointerdown: [],
 				pointermove: [],
 				pointerup: [],
+				win: [],
+				lose: [],
 			},
 			bulletsArray: [],
 			asteroidsArray: [],
@@ -100,6 +108,8 @@ export default class StarshipDefenceGame {
 			collisionDetection: new CollisionDetection(this),
 			asteroidCreatorManager: new AsteroidCreatorManager(this),
 			menu: new MenuManager(this),
+			game: new GameManager(this, this.onWin.bind(this)),
+			gameOverText: new GameOver(this),
 		};
 
 		this.updateSize();
@@ -138,6 +148,10 @@ export default class StarshipDefenceGame {
 		this.app.stage.on("pointermove", this.onPointermove.bind(this));
 		this.app.stage.on("pointerup", this.onPointerup.bind(this));
 
+		this.DOM.menuToggler.addEventListener("click", this.onMenuTogglerClick.bind(this))
+		this.DOM.defaultGameBtn.addEventListener("click", this.onMenuPlayDefaultClick.bind(this))
+		this.DOM.restartBtn.addEventListener("click", this.onMenuRestartClick.bind(this))
+
 		// ---- EVENT LISTENERS <- ----
 	}
 
@@ -161,34 +175,42 @@ export default class StarshipDefenceGame {
 		this.state.eventCallbacks[type] = this.state.eventCallbacks[type].filter((oldCallback) => callback !== oldCallback);
 	}
 
-	pause() {
-		this.state.isPause = true;
-	}
+	onWin(gameName) {
+		this.managers.gameOverText.init("You win!");
 
-	unpause() {
-		this.state.isPause = false;
-	}
+		setTimeout(() => {
+			this.managers.menu.open();
+			this.managers.gameOverText.destroy();
+		}, 1000)
 
-	startGame() {
-		this.managers.asteroidCreatorManager.create();
-		this.managers.starship.create();
-	}
-
-	cancelGame() {
-		this.managers.starship.onDestroy();
-		this.managers.asteroidCreatorManager.destroy();
-		this.state.bulletsArray.forEach((bullet) => {
-			bullet.destroyInstantly();
+		this.state.eventCallbacks.win.forEach((callback) => {
+			callback(gameName);
 		});
+	}
+
+	onMenuTogglerClick() {
+		this.managers.menu.toggle();
+
+		this.managers.game.toggle();
+	}
+
+	onMenuPlayDefaultClick() {
+		this.managers.game.createDefaultGame();
+		this.managers.menu.close();
+	}
+	
+	onMenuRestartClick() {
+		this.managers.game.createDefaultGame();
+		this.managers.menu.close();
 	}
 
 	onLoad() {
 		this.managers.bg.init(this.loader.resources.bg);
 		this.managers.starship.init(this.loader.resources.starship);
 		this.managers.asteroidCreatorManager.init(this.loader.resources.asteroid, this.loader.resources.explosion);
-		this.managers.menu.init();
-
-		this.startGame();
+		// this.managers.menu.init();
+		this.managers.menu.open();
+		// this.managers.game.createDefaultGame();
 
 		this.state.eventCallbacks.load.forEach((callback) => {
 			callback();
@@ -221,6 +243,9 @@ export default class StarshipDefenceGame {
 	}
 
 	onEscapeDown() {
+		this.managers.menu.toggle();
+		this.managers.game.toggle();
+
 		this.state.eventCallbacks.keyEscapeDown.forEach((callback) => {
 			callback();
 		});

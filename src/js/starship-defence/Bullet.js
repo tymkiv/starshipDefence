@@ -73,7 +73,9 @@ export default class Bullet extends Manager {
 	}
 
 	onTick() {
-		if (this.generalManager.state.isPause) return;
+		// if (this.generalManager.state.isPause) return;
+		if (this.generalManager.managers.game.state.isPause) return;
+		// if (!this.generalManager.managers.game.state.currentGame) return;
 
 		if (this.state.shouldBeDestroyed) {
 			this.onDestroy();

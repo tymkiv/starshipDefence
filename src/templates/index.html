@@ -4,6 +4,14 @@ title: Index page
 
 {% extends "layouts/_layout.html" %} {% block content %}
 
-<div id="game-container"></div>
-<h1>dfdf</h1>
+<div id="js-game-container"></div>
+
+<div class="game-menu">
+	<button id="js-game-menu-toggler" type="button" class="game-menu__toggler game-menu__btn">Menu</button>
+
+	<div id="js-game-menu-wrapper" class="game-menu__wrapper" aria-hidden="true">
+		<button id="js-game-menu-restart" type="button" class="game-menu__btn is-hidden">Restart</button>
+		<button id="js-game-menu-default" type="button" class="game-menu__btn">Play default game</button>
+	</div>
+</div>
 {% endblock %}

@@ -1,10 +1,50 @@
 body 
 	font-family: "IrishGrover", "Arial", "sans-serif"
 
-#game-container 
+#js-game-container 
 	position: fixed
 	top: 0
 	bottom: 0
 	left: 0
 	right: 0
 	overflow: hidden
+
+.game-menu 
+	position: fixed
+	top: 0
+	bottom: 0
+	left: 0
+	right: 0
+	pointer-events: none
+	&__btn
+		font-family: inherit
+		font-size: Min(5vh, 10vw)
+		background-color: transparent
+		color: #fff
+		transition: color 0.3s
+		text-shadow: -2px 1px 5px red
+		pointer-events: all
+		&:hover
+			color: red
+		&.is-hidden
+			display: none
+	&__toggler
+		position: absolute
+		top: 20px
+		right: 20px
+		z-index: 100
+
+	&__wrapper
+		position: absolute
+		top: 0
+		left: 0
+		right: 0
+		bottom: 0
+		display: none
+		flex-direction: column
+		justify-content: center
+		align-items: center
+		&.is-open
+			display: flex
+		
+		

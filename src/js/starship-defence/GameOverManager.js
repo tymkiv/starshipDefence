@@ -11,7 +11,7 @@ export default class GameOver extends Manager {
 		this.state.text = 
 		`
 		Game over! Loser!
-		Do you want to buy sume bullets?
+		Do you want to buy any bullets?
 		`;
 
 		

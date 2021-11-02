@@ -8,10 +8,41 @@ title: Index page
 
 <div class="game-menu">
 	<button id="js-game-menu-toggler" type="button" class="game-menu__toggler game-menu__btn">Menu</button>
+	
+	<div id="js-game-bullet-info" class="game-menu__bullet-info is-hidden">
+		<span class="game-menu__bullet-icon"></span>
+		<span id="js-game-bullet-used" class="game-menu__bullet-used"></span> /
+		<span id="js-game-bullet-number" class="game-menu__bullet-number"></span>
+	</div>
+
+	<div id="js-payment" class="game-menu__payment is-hidden">
+		<button type="button" id="js-payment-close" class="game-menu__payment-close">x</button>
+		<div class="game-menu__payment-card game-menu__payment-card-front">
+			<label class="game-menu__payment-card-number"> Number of card 
+				<input type="text" class="game-menu__payment-card-number-input">
+			</label>
+			<label class="game-menu__payment-card-date">
+				Date of card
+				<input type="text" class="game-menu__payment-card-date-input">
+			</label>
+		</div>
+		<div class="game-menu__payment-card game-menu__payment-card-back">
+			<label class="game-menu__payment-card-cvv">
+				CVV
+				<input type="password" maxlength="3" class="game-menu__payment-card-cvv-input">
+			</label>
+		</div>
+
+		<div id="js-joke" class="game-menu__joke is-hidden">
+			<p>It is a joke</p>
+			<img src="./img/joke-1.png" data-temp-src="./img/joke-2.png" alt="">
+		</div>
+	</div>
+
+	
 
 	<div id="js-game-menu-wrapper" class="game-menu__wrapper" aria-hidden="true">
 		<button id="js-game-menu-restart" type="button" class="game-menu__btn is-hidden">Restart</button>
-		<button id="js-game-menu-default" type="button" class="game-menu__btn">Play default game</button>
 	</div>
 </div>
 {% endblock %}

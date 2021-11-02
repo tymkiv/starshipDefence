@@ -18,6 +18,12 @@ export default class StarshipDefenceGame {
 			menuWrapper: props.menuWrapper,
 			restartBtn: props.restartBtn,
 			defaultGameBtn: props.defaultGameBtn,
+			bulletInfo: props.bulletInfo,
+			bulletUsed: props.bulletUsed,
+			bulletNumber: props.bulletNumber,
+			payment: props.payment,
+			paymentClose: props.paymentClose,
+			joke: props.joke,
 		};
 
 		const stats = new Stats();
@@ -59,20 +65,28 @@ export default class StarshipDefenceGame {
 				dropShadowBlur: 4,
 				dropShadowAngle: Math.PI / 6,
 				dropShadowDistance: 6,
+				wordWrap: true,
+				wordWrapWidth: 300
 			}),
 
-			textStyleHover: new PIXI.TextStyle({
-				fontFamily: "IrishGrover",
-				fontSize: 36,
-				fill: "yellow",
-				stroke: "#ff3300",
-				strokeThickness: 4,
-				dropShadow: true,
-				dropShadowColor: "#000000",
-				dropShadowBlur: 4,
-				dropShadowAngle: Math.PI / 6,
-				dropShadowDistance: 6,
-			}),
+			games: {
+				defaultGame: {
+					maxBullet: Infinity,
+					name: "Default game",
+				},
+				hardGame: {
+					maxBullet: 15,
+					name: "Hard game",
+				},
+				extraHardGameGame: {
+					maxBullet: 10,
+					name: "Extra hard game",
+				},
+				trollingGameGame: {
+					maxBullet: 5,
+					name: "Only Vova can win",
+				},
+			}
 		};
 
 		this.state = {
@@ -100,6 +114,7 @@ export default class StarshipDefenceGame {
 			},
 			bulletsArray: [],
 			asteroidsArray: [],
+			bulletNumber: 0,
 		};
 
 		this.managers = {
@@ -108,7 +123,7 @@ export default class StarshipDefenceGame {
 			collisionDetection: new CollisionDetection(this),
 			asteroidCreatorManager: new AsteroidCreatorManager(this),
 			menu: new MenuManager(this),
-			game: new GameManager(this, this.onWin.bind(this)),
+			game: new GameManager(this, this.onWin.bind(this), this.onLose.bind(this)),
 			gameOverText: new GameOver(this),
 		};
 
@@ -149,10 +164,46 @@ export default class StarshipDefenceGame {
 		this.app.stage.on("pointerup", this.onPointerup.bind(this));
 
 		this.DOM.menuToggler.addEventListener("click", this.onMenuTogglerClick.bind(this))
-		this.DOM.defaultGameBtn.addEventListener("click", this.onMenuPlayDefaultClick.bind(this))
+		// this.DOM.defaultGameBtn.addEventListener("click", this.onMenuPlayDefaultClick.bind(this))
 		this.DOM.restartBtn.addEventListener("click", this.onMenuRestartClick.bind(this))
+		this.DOM.paymentClose.addEventListener("click", () => {
+			this.DOM.payment.classList.add("is-hidden");
+			this.DOM.joke.classList.add("is-hidden"); 
+			clearInterval(this.jokeInterval);
+			this.managers.menu.undisable();
+			this.managers.menu.open();
+		})
+
+		const inputs = [...this.DOM.payment.querySelectorAll("input")];
+		inputs.forEach(input => {
+			input.addEventListener("click", () => {
+				this.DOM.joke.classList.remove("is-hidden");
+				this.jokeInterval = setInterval(() => {
+					this.jokeChangeImg();
+				}, 700);
+			})
+		})
 
 		// ---- EVENT LISTENERS <- ----
+
+		this.createGamesBtn();
+	}
+
+	jokeChangeImg() {
+		const {tempSrc} = this.DOM.joke.querySelector("img").dataset;
+		const {src} = this.DOM.joke.querySelector("img");
+		this.DOM.joke.querySelector("img").dataset.tempSrc = src;
+		this.DOM.joke.querySelector("img").src = tempSrc;
+	}
+
+	createGamesBtn() {
+		Object.entries(this.settings.games).forEach(game => {
+			const btn = document.createElement("button");
+			btn.classList.add("game-menu__btn");
+			btn.innerHTML = game[1].name;
+			btn.addEventListener("click", this.managers.game.createGame.bind(this.managers.game, game[0]))
+			this.DOM.menuWrapper.appendChild(btn);
+		})
 	}
 
 	startLoading() {
@@ -176,14 +227,38 @@ export default class StarshipDefenceGame {
 	}
 
 	onWin(gameName) {
-		this.managers.gameOverText.init("You win!");
-
-		setTimeout(() => {
+		this.managers.menu.disable();
+		this.managers.gameOverText.initWin(() => {
+			this.managers.menu.undisable();
 			this.managers.menu.open();
 			this.managers.gameOverText.destroy();
-		}, 1000)
+		});
 
 		this.state.eventCallbacks.win.forEach((callback) => {
+			callback(gameName);
+		});
+	}
+	
+	onLose(gameName) {
+		this.managers.menu.disable();
+		this.managers.gameOverText.initGameOver(() => {
+			this.DOM.payment.classList.remove("is-hidden");
+			this.managers.gameOverText.destroy();
+			
+		}, () => {
+			this.managers.menu.undisable();
+			this.managers.menu.open();
+			this.managers.gameOverText.destroy();
+			
+		});
+		// this.managers.gameOverText.init("Game over!");
+		// setTimeout(() => {
+			// this.DOM.payment.classList.remove("is-hidden");
+			// this.managers.menu.open();
+			// this.managers.gameOverText.destroy();
+		// }, 1000)
+
+		this.state.eventCallbacks.lose.forEach((callback) => {
 			callback(gameName);
 		});
 	}
@@ -194,14 +269,14 @@ export default class StarshipDefenceGame {
 		this.managers.game.toggle();
 	}
 
-	onMenuPlayDefaultClick() {
-		this.managers.game.createDefaultGame();
-		this.managers.menu.close();
-	}
+	// onMenuPlayDefaultClick() {
+	// 	this.managers.game.createDefaultGame();
+	// 	this.managers.menu.close();
+	// }
 	
 	onMenuRestartClick() {
-		this.managers.game.createDefaultGame();
-		this.managers.menu.close();
+		this.managers.game.restartCurrentGame();
+		// this.managers.menu.close();
 	}
 
 	onLoad() {

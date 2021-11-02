@@ -10,12 +10,13 @@ export default class StarshipManager extends Manager {
 		this.starship = starship;
 	}
 
-	create() {
+	create(bulletNumber = Infinity) {
 		this.state.isInited = true;
 		this.state.driftX = null;
 		this.state.keyLeftActive = false;
 		this.state.keyRightActive = false;
 		this.state.shotActive = false;
+		this.state.bulletNumber = bulletNumber;
 		this.state.touches = {
 			left: {
 				start: null,
@@ -224,13 +225,17 @@ export default class StarshipManager extends Manager {
 	}
 
 	shot() {
-		if (this.generalManager.state.isPause) return;
+		if (this.generalManager.state.isPause || this.state.bulletNumber - 1 < 0) return;
 
+		this.state.bulletNumber -= 1;
+		
 		new Bullet( // eslint-disable-line no-new
 			this.generalManager,
 			this.state.normalX,
 			this.state.normalY - this.generalManager.settings.starshipSizeH / 2
 		);
+
+		this.generalManager.state.bulletNumber += 1;
 	}
 
 	onTick() {

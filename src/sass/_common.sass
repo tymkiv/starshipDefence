@@ -33,6 +33,8 @@ body
 		top: 20px
 		right: 20px
 		z-index: 100
+		&.is-hidden
+			display: none
 
 	&__wrapper
 		position: absolute
@@ -46,5 +48,118 @@ body
 		align-items: center
 		&.is-open
 			display: flex
+	
+	&__bullet-info
+		position: absolute
+		bottom: 5vh
+		right: 10vw
+		font-size: Min(2.5vh, 5vw)
+		color: #fff
+		text-shadow: -2px 1px 5px red
+		display: flex
+		justify-content: center
+		align-items: center
+		&.is-hidden
+			display: none
+	
+	&__bullet-icon
+		display: inline-block
+		width: 1vw
+		height: 1vw
+		border-radius: 50%
+		background-color: #66ccff
+		margin-right: 0.5em
+
+	&__bullet-used
+		margin-right: 0.5em
+	&__bullet-number
+		margin-left: 0.5em
+
+	&__payment
+		position: absolute
+		top: 50%
+		left: 50%
+		transform: translate(-50%, -50%)
+		pointer-events: all
+		z-index: 200
+		&.is-hidden
+			display: none
+
+	&__payment-card
+		background-color: #eee
+		border-radius: 10px
+		width: 300px
+		height: 150px		
+		box-shadow: 0 0 15px 5px rgba(0,0,0,0.5)
+		font-family: Arial
+	
+	&__payment-card-front
+		position: relative
+		z-index: 5
+	
+	&__payment-card-back
+		position: absolute
+		z-index: 1
+		left: 100px
+		top: 100px
+
+	&__payment-card-cvv
+		position: absolute
+		bottom: 30px
+		right: 50px
+
+	&__payment-card-cvv-input
+		width: 3ch
+		font-size: 30px
+		letter-spacing: 2px
+
+	&__payment-card-number-input
+		display: block
+		width: 100%
+		font-size: 30px
+
+	&__payment-card-number
+		display: block
+		padding: 20px 20px
+
+	&__payment-card-date
+		display: flex
+		justify-content: flex-end
+		padding: 5px 20px 20px
+
+	&__payment-card-date-input
+		width: 8ch
+		font-size: 30px
+		letter-spacing: 2px
+
+	&__payment-close
+		font-size: 60px
+		position: absolute
+		top: 0
+		right: -100px
+		z-index: 100
+		background-color: transparent
+		border: none
+		color: #fff
+
+	&__joke
+		position: absolute
+		z-index: 300
+		top: 50%
+		left: 50%
+		transform: translate(-50%, -50%)
+		font-size: 60px
+		margin-left: 50px
+		color: #fff
+
+		img
+			width: 300px
+			height: 300px
+			object-fit: contain
+			object-position: center
+		&.is-hidden
+			display: none
+
+		
 		
 		

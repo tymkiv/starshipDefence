@@ -8,7 +8,6 @@ export default class CollisionDetection {
 	}
 
 	detect() {
-		// if (this.generalManager.state.isPause) return;
 		if (!this.generalManager.managers.game.state.currentGame) return;
 
 		this.generalManager.state.bulletsArray.forEach((bullet) => {

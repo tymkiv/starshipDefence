@@ -3,15 +3,6 @@ import * as PIXI from "pixi.js";
 import Manager from "./Manager";
 
 export default class GameOver extends Manager {
-	// init(text) {
-	// 	if (this.state.isInited) return;
-	// 	super.init();
-	// 	console.log('init');
-	// 	this.state.text = text;
-
-	// 	this.createDefaultMessage();
-	// }
-
 	initGameOver(onYes, onNo) {
 		super.init();
 

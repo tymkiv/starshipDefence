@@ -30,7 +30,6 @@ export default class GameManager {
 	}
 
 	createGame(nameOfGame) {
-		console.log(nameOfGame);
 		if (this.state.currentGame) this.deleteCurrentGame();
 
 		this.state.currentGame = nameOfGame;

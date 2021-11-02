@@ -251,12 +251,6 @@ export default class StarshipDefenceGame {
 			this.managers.gameOverText.destroy();
 			
 		});
-		// this.managers.gameOverText.init("Game over!");
-		// setTimeout(() => {
-			// this.DOM.payment.classList.remove("is-hidden");
-			// this.managers.menu.open();
-			// this.managers.gameOverText.destroy();
-		// }, 1000)
 
 		this.state.eventCallbacks.lose.forEach((callback) => {
 			callback(gameName);
@@ -268,24 +262,17 @@ export default class StarshipDefenceGame {
 
 		this.managers.game.toggle();
 	}
-
-	// onMenuPlayDefaultClick() {
-	// 	this.managers.game.createDefaultGame();
-	// 	this.managers.menu.close();
-	// }
 	
 	onMenuRestartClick() {
 		this.managers.game.restartCurrentGame();
-		// this.managers.menu.close();
 	}
 
 	onLoad() {
 		this.managers.bg.init(this.loader.resources.bg);
 		this.managers.starship.init(this.loader.resources.starship);
 		this.managers.asteroidCreatorManager.init(this.loader.resources.asteroid, this.loader.resources.explosion);
-		// this.managers.menu.init();
+
 		this.managers.menu.open();
-		// this.managers.game.createDefaultGame();
 
 		this.state.eventCallbacks.load.forEach((callback) => {
 			callback();
@@ -307,11 +294,11 @@ export default class StarshipDefenceGame {
 
 		if (this.state.bulletsArray.length !== this.tempNumber) {
 			this.tempNumber = this.state.bulletsArray.length;
-			console.log("bullets:", this.state.bulletsArray);
+			// console.log("bullets:", this.state.bulletsArray);
 		}
 		if (this.state.asteroidsArray.length !== this.tempNumberAsteroids) {
 			this.tempNumberAsteroids = this.state.asteroidsArray.length;
-			console.log("asteroids:", this.state.asteroidsArray);
+			// console.log("asteroids:", this.state.asteroidsArray);
 		}
 
 		window.requestAnimationFrame(this.onTick.bind(this));

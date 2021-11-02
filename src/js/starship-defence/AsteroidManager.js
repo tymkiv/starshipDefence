@@ -122,11 +122,9 @@ export default class AsteroidManager extends Manager {
 	}
 
 	onTick() {
-		// if (this.generalManager.state.isPause) return;
 		if (this.generalManager.managers.game.state.isPause) return;
 
 		this.state.time += 1;
-		// console.log(this.state.time, this.state.destroyTime);
 
 		if (this.state.shouldBeDestroyed) {
 			if (this.state.time === this.state.destroyTime) {

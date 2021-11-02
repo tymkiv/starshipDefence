@@ -82,6 +82,9 @@ body
 		transform: translate(-50%, -50%)
 		pointer-events: all
 		z-index: 200
+		margin-left: -50px
+		@media only screen and (max-width: 600px)
+			margin-left: -5vw
 		&.is-hidden
 			display: none
 
@@ -92,6 +95,9 @@ body
 		height: 150px		
 		box-shadow: 0 0 15px 5px rgba(0,0,0,0.5)
 		font-family: Arial
+		@media only screen and (max-width: 600px)
+			width: 60vw
+			height: 30vw
 	
 	&__payment-card-front
 		position: relative
@@ -102,6 +108,8 @@ body
 		z-index: 1
 		left: 100px
 		top: 100px
+		@media only screen and (max-width: 600px)
+			left: 10vw
 
 	&__payment-card-cvv
 		position: absolute
@@ -112,11 +120,15 @@ body
 		width: 3ch
 		font-size: 30px
 		letter-spacing: 2px
+		@media only screen and (max-width: 600px)
+			font-size: 16px
 
 	&__payment-card-number-input
 		display: block
 		width: 100%
 		font-size: 30px
+		@media only screen and (max-width: 600px)
+			font-size: 16px
 
 	&__payment-card-number
 		display: block
@@ -131,16 +143,21 @@ body
 		width: 8ch
 		font-size: 30px
 		letter-spacing: 2px
+		@media only screen and (max-width: 600px)
+			font-size: 16px
 
 	&__payment-close
 		font-size: 60px
 		position: absolute
 		top: 0
 		right: -100px
-		z-index: 100
+		z-index: 500
 		background-color: transparent
 		border: none
 		color: #fff
+		@media only screen and (max-width: 600px)
+			right: -10vw
+			font-size: 30px
 
 	&__joke
 		position: absolute
@@ -151,12 +168,14 @@ body
 		font-size: 60px
 		margin-left: 50px
 		color: #fff
-
 		img
 			width: 300px
 			height: 300px
 			object-fit: contain
 			object-position: center
+			@media only screen and (max-width: 600px)
+				width: 200px
+				height: 200px
 		&.is-hidden
 			display: none
 
